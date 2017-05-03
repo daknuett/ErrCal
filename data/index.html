@@ -1,0 +1,154 @@
+<html>
+
+	<head>
+		<title>Online ErrCal</title>
+		<script type=text/javascript rel="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" type="text/javascript"></script>
+		<script type=text/javascript>
+			var current_rowno = 0;
+			function add_row()
+			{
+				var html = "<div id=row" + current_rowno + ">";
+				var cols = $("#addrow_colnum").val();
+				html += "<b> Tolerance [<input type=number step=any id=\"row" + current_rowno + "tolerance\"/>%]</b>"
+				for(i = 0; i < cols; i++)
+				{
+								html += "<input type=number step=any id=\"row" + current_rowno + "col" + i + "\" ></input>"
+				}
+				html += "<button onclick=\"del_row(" + current_rowno + ")\">Delete</button>"
+				html += "</div>"
+				$("#rows").append(html)
+				current_rowno += 1;
+			}
+
+			function del_row(rowno)
+			{
+				var name = "#row" + rowno;
+				$(name).remove()
+			}
+			function push_data()
+			{
+				var rows = [];
+				var tolerances = [];
+				// move over all rows
+				for(i = 0; i < current_rowno; i++)
+				{
+					var cols = [];
+					var rowname = "#row" + i;
+					// we might have deleted the row
+					if($(rowname).length)
+					{
+						// move over all columns.
+						var colno = 0;
+						while($(rowname + "col" + colno).length)
+						{
+							cols.push($(rowname + "col" + colno).val());
+							colno += 1;
+						}
+						rows.push(cols);
+						tolerances.push($(rowname + "tolerance").val());
+					}
+				}
+
+				$("#results").empty();
+				for(i = 0; i < rows.length; i++)
+				{
+					console.log(rows[i]);
+					$.ajax({"url": "/calculate_all"
+							, "data": {"samples": JSON.stringify(rows[i]), "tolerance": tolerances[i]} 
+							, "method": "GET"
+							, "success": display_res});
+				}
+			}
+			function display_res(json_str)
+			{
+				var result = JSON.parse(json_str);
+				$("#results").append("<p>average: " + result.avg +
+						" min: " + result.min +
+						" max: " + result.max +
+						" modus: " + result.modus + 
+						" average absolute error: " + result.average_absolute_error +
+						" relative error: " + result.relative_error +
+						"</p>")
+
+			}
+
+
+			function push_for_download()
+			{
+				var rows = [];
+				var tolerances = [];
+				// move over all rows
+				for(i = 0; i < current_rowno; i++)
+				{
+					var cols = [];
+					var rowname = "#row" + i;
+					// we might have deleted the row
+					if($(rowname).length)
+					{
+						// move over all columns.
+						var colno = 0;
+						while($(rowname + "col" + colno).length)
+						{
+							cols.push($(rowname + "col" + colno).val());
+							colno += 1;
+						}
+						rows.push(cols);
+						tolerances.push($(rowname + "tolerance").val());
+					}
+				}
+				/*
+				$.ajax({"url": "/download"
+						, "data": {"many_samples": JSON.stringify(rows),
+								"tolerances": JSON.stringify(tolerances),
+								"dtype": $("#downlod_dtype").val()}
+						, "success": get_download});
+				*/
+
+				var win = window.open("/download?many_samples=" + JSON.stringify(rows) +
+						"&tolerances=" + JSON.stringify(tolerances) +
+						"&dtype=" + $("#downlod_dtype").val(), "_blank");
+				win.focus();
+
+			}
+
+			function get_download(result)
+			{
+				// TODO
+			}
+		</script>
+	</head>
+
+	<body>
+
+		<div id="buttons">
+			<div>
+				[<button id="button_calculate" onclick="push_data()">Calculate</button>]
+			</div>
+			<div>
+				[<select id="downlod_dtype">
+					<option value="ljson"> ljson </option>
+					<option value="json"> json </option>
+					<option value="csv"> csv </option>
+				</select>
+				<button id="button_download" onclick="push_for_download()"> Download</button>]
+			</div>
+		</div>
+
+		<div id="values">
+			<div id="rows"></div>
+
+			<div id="addrowdiv">
+				<input type=number id="addrow_colnum"></input>
+				<button onclick="add_row()">Add Row</button>
+			</div>
+		</div>
+		<div id="results">
+		<p></p>
+		</div>
+		<div>
+			<a href="/man.html">Manual</a>
+		</div>
+	</body>
+
+</html>
