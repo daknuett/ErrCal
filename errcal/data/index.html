@@ -10,6 +10,7 @@
 			{
 				var html = "<div id=row" + current_rowno + ">";
 				var cols = $("#addrow_colnum").val();
+				html += "<i> x [<input type=number step=any id=\"row" + current_rowno + "x\"/>]</i>"
 				html += "<b> Tolerance [<input type=number step=any id=\"row" + current_rowno + "tolerance\"/>%]</b>"
 				for(i = 0; i < cols; i++)
 				{
@@ -59,6 +60,7 @@
 							, "method": "GET"
 							, "success": display_res});
 				}
+				add_plot_image();
 			}
 			function display_res(json_str)
 			{
@@ -112,11 +114,79 @@
 
 			}
 
+			function push_for_plot()
+			{
+				var rows = [];
+				var tolerances = [];
+				var xes = [];
+				// move over all rows
+				for(i = 0; i < current_rowno; i++)
+				{
+					var cols = [];
+					var rowname = "#row" + i;
+					// we might have deleted the row
+					if($(rowname).length)
+					{
+						// move over all columns.
+						var colno = 0;
+						while($(rowname + "col" + colno).length)
+						{
+							cols.push($(rowname + "col" + colno).val());
+							colno += 1;
+						}
+						rows.push(cols);
+						tolerances.push($(rowname + "tolerance").val());
+						xes.push($(rowname + "x").val());
+					}
+				}
+				var win = window.open("/plot?many_samples=" + JSON.stringify(rows) +
+						"&tolerances=" + JSON.stringify(tolerances) +
+						"&xes=" + JSON.stringify(xes) +
+						"&xerr_abs=" + $("#xerr_abs").val() +
+						"&xerr_rel=" + $("#xerr_rel").val(), "_blank");
+				win.focus();
+				
+			}
+			
+			function add_plot_image()
+			{
+				var rows = [];
+				var tolerances = [];
+				var xes = [];
+				// move over all rows
+				for(i = 0; i < current_rowno; i++)
+				{
+					var cols = [];
+					var rowname = "#row" + i;
+					// we might have deleted the row
+					if($(rowname).length)
+					{
+						// move over all columns.
+						var colno = 0;
+						while($(rowname + "col" + colno).length)
+						{
+							cols.push($(rowname + "col" + colno).val());
+							colno += 1;
+						}
+						rows.push(cols);
+						tolerances.push($(rowname + "tolerance").val());
+						xes.push($(rowname + "x").val());
+					}
+				}
+				$("#plot_output_image").attr("src", "/plot?many_samples=" + JSON.stringify(rows) +
+						"&tolerances=" + JSON.stringify(tolerances) +
+						"&xes=" + JSON.stringify(xes) +
+						"&xerr_abs=" + $("#xerr_abs").val() +
+						"&xerr_rel=" + $("#xerr_rel").val());
+
+			}
+
 			function get_download(result)
 			{
 				// TODO
 			}
 		</script>
+		<link rel="stylesheet" href="/index.css" type="text/css"/>
 	</head>
 
 	<body>
@@ -133,15 +203,25 @@
 				</select>
 				<button id="button_download" onclick="push_for_download()"> Download</button>]
 			</div>
+			<div>
+				[<button id="button_plot" onclick="push_for_plot()">Plot</button>]
+			</div>
 		</div>
 
 		<div id="values">
 			<div id="rows"></div>
+			<div id="x_error_info">
+				<p><b>xerr_abs</b><input type=number step=any id="xerr_abs"/></p>
+				<p><b>xerr_rel[</b><input type=number step=any id="xerr_rel"/>%]</p>
+			</div>
 
 			<div id="addrowdiv">
 				<input type=number id="addrow_colnum"></input>
 				<button onclick="add_row()">Add Row</button>
 			</div>
+		</div>
+		<div id="plot" style="width:100%;">
+			<img id="plot_output_image"/>
 		</div>
 		<div id="results">
 		<p></p>

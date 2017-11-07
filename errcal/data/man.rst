@@ -23,6 +23,16 @@ If all the samples are inserted the errors can be calculated
 by clicking on "Calculate". The button "Download" will open
 a new tab with the calculated results.
 
+By providing and "x" value for each row you allow the server
+to create a new plot. It uses the ``matplotlib`` library to
+generate a scatter plot displaying all your values and
+a simple linear scaled plot displaying average with
+errorsbars, min, max and modus.
+
+This plot cannot be used for further research. It is just
+created to give one a hint how the data looks like and is
+therefore plotted using the `xkcd <xkcd.com>`_ style.
+
 Data Formats
 ============
 
